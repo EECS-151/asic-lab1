@@ -4,10 +4,10 @@ ABS_TOP                 := $(shell pwd)
 SIM_RTL                 := $(shell find $(ABS_TOP)/sim -type f -name "*.sv")
 SIM_TARGETS             := $(shell realpath --relative-to $(ABS_TOP) $(SIM_RTL))
 
-VCS                     := /share/instsww/synopsys-new/vcs/T-2022.06-SP2-9/bin/vcs -full64
-VPD2FSDB				:= /share/instsww/synopsys-new/verdi/T-2022.06-SP2/bin/vpd2fsdb
-VCS_OPTS                := -notice -line +lint=all,noVCDE,noNS,noSVA-UA -sverilog -timescale=1ns/1ps -debug_access+all -kdb
-VCS_TARGETS             := $(SIM_TARGETS:%.sv=%.vpd)
+VCS                     := /share/instsww/synopsys-new/vcs/Y-2026.03-SP1/bin/vcs -full64
+VERDI_HOME              := /share/instsww/synopsys-new/verdi/Y-2026.03-SP1
+VCS_OPTS                := -notice -line +lint=all,noVCDE,noNS,noSVA-UA -sverilog -timescale=1ns/1ps -debug_access+all -kdb +vcs+fsdbon
+VCS_TARGETS             := $(SIM_TARGETS:%.sv=%.fsdb)
 IVERILOG                := iverilog
 IVERILOG_OPTS           := -D IVERILOG=1 -g2012 -gassertions -Wall -Wno-timescale
 IVERILOG_TARGETS        := $(SIM_TARGETS:%.sv=%.fst)
@@ -24,19 +24,18 @@ sim/decoder_4_to_16_tb.tb: sim/decoder_4_to_16_tb.sv FORCE
 	cd sim && $(VCS) $(VCS_OPTS) -o decoder_4_to_16_tb.tb decoder_4_to_16_tb.sv $(RTL) ../src/line_decoder.sv ../src/$(patsubst %_tb.sv,%.sv,$(notdir $<))
 # 	$(VPD2FSDB) decoder_4_to_16_tb.vpd -o decoder_4_to_16_tb.fsdb
 
-$(VCS_TARGETS): sim/%.vpd: sim/%.tb FORCE
-	cd sim && ./$*.tb +verbose=1 +vpdfile+$*.vpd
-	cd sim && $(VPD2FSDB) ./$*.vpd -o ./$*.fsdb
+$(VCS_TARGETS): sim/%.fsdb: sim/%.tb FORCE
+	cd sim && ./$*.tb +verbose=1 +fsdbfile+$*.fsdb
 
 sim-all: 
-	make sim/one_bit_comparator_structural_tb.vpd 
-	make sim/one_bit_comparator_behavioral_tb.vpd 
-	make sim/one_bit_comparator_always_tb.vpd 
-	make sim/four_bit_comparator_always_tb.vpd 
-	make sim/shift_register_structural_tb.vpd 
-	make sim/shift_register_behavioral_tb.vpd 
-	make sim/simple_counter_tb.vpd 
-	make sim/decoder_4_to_16_tb.vpd
+	make sim/one_bit_comparator_structural_tb.fsdb 
+	make sim/one_bit_comparator_behavioral_tb.fsdb 
+	make sim/one_bit_comparator_always_tb.fsdb 
+	make sim/four_bit_comparator_always_tb.fsdb 
+	make sim/shift_register_structural_tb.fsdb 
+	make sim/shift_register_behavioral_tb.fsdb 
+	make sim/simple_counter_tb.fsdb 
+	make sim/decoder_4_to_16_tb.fsdb 
 
 clean: FORCE
 	rm -rf ./build $(junk) *.daidir sim/output.txt \
