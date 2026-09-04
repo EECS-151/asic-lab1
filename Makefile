@@ -27,7 +27,19 @@ sim/decoder_4_to_16_tb.tb: sim/decoder_4_to_16_tb.sv FORCE
 $(VCS_TARGETS): sim/%.fsdb: sim/%.tb FORCE
 	cd sim && ./$*.tb +verbose=1 +fsdbfile+$*.fsdb
 
-sim-all: 
+sim/%.vvp: sim/%.sv FORCE
+	cd sim && $(IVERILOG) $(IVERILOG_OPTS) -o $*.vvp $*.sv $(RTL) ../src/$(patsubst %_tb.sv,%.sv,$(notdir $<))
+
+# special case where one tb depends on two sources
+sim/decoder_4_to_16_tb.vvp: sim/decoder_4_to_16_tb.sv FORCE
+	cd sim && $(IVERILOG) $(IVERILOG_OPTS) -o decoder_4_to_16_tb.vvp decoder_4_to_16_tb.sv $(RTL) ../src/line_decoder.sv ../src/$(patsubst %_tb.sv,%.sv,$(notdir $<))
+
+$(IVERILOG_TARGETS): sim/%.fst: sim/%.vvp FORCE
+	cd sim && $(VVP) -n $*.vvp -fst
+
+sim-all: $(IVERILOG_TARGETS)
+
+sim-all-vcs: 
 	make sim/one_bit_comparator_structural_tb.fsdb 
 	make sim/one_bit_comparator_behavioral_tb.fsdb 
 	make sim/one_bit_comparator_always_tb.fsdb 
@@ -42,4 +54,4 @@ clean: FORCE
 	sim/*.tb sim/*.daidir sim/csrc \
 	sim/ucli.key sim/*.vpd sim/*.vcd \
 	sim/*.tbi sim/*.fst sim/*.jou sim/*.log sim/*.out \
-	sim/*.fsdb
+	sim/*.fsdb sim/*.vvp

@@ -35,7 +35,7 @@ module shift_register_behavioral_tb;
         assert (out == 4'b0000)
             else $fatal(1, "Initial state failed: out=%b", out);
 
-        for(i = 0; i < 16; i = i++) begin
+        for(i = 0; i < 16; i++) begin
             in = $urandom_range(1, 0);
             #8ns;
             assert (out == {prev_out[2:0], in})
